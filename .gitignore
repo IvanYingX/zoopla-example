@@ -1,0 +1,4 @@
+/config/RDS_creds.yaml
+__pycache__/*
+*/__pycache__
+*ipynb
