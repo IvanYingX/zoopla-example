@@ -32,11 +32,11 @@ class Scraper:
     driver:
         THis is the webdriver object
     '''
-    def __init__(self, url: str, creds: str):
+    def __init__(self, url: str, creds: str='config/RDS_creds.yaml'):
         self.driver = Chrome(ChromeDriverManager().install())
         self.driver.get(url)
         with open(creds, 'r') as f:
-            creds = yaml.safe_load(f, Loader=yaml)
+            creds = yaml.safe_load(f)
         DATABASE_TYPE = creds['DATABASE_TYPE']
         DBAPI = creds['DBAPI']
         HOST = creds['HOST']
