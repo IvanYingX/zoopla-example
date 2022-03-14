@@ -1,8 +1,8 @@
-from calendar import c
 from selenium.webdriver import Chrome
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver import ChromeOptions
 import time
 from typing import Optional
 from selenium.webdriver.support import expected_conditions as EC
@@ -33,20 +33,35 @@ class Scraper:
         THis is the webdriver object
     '''
     def __init__(self, url: str, creds: str='config/RDS_creds.yaml'):
-        self.driver = Chrome(ChromeDriverManager().install())
+        options = ChromeOptions()
+        options.add_argument('--headless')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument("--window-size=1920,1080")
+        options.add_argument("--remote-debugging-port=9222")
+        self.driver = Chrome(ChromeDriverManager().install(), options=options)
         self.driver.get(url)
         with open(creds, 'r') as f:
             creds = yaml.safe_load(f)
-        DATABASE_TYPE = creds['DATABASE_TYPE']
-        DBAPI = creds['DBAPI']
-        HOST = creds['HOST']
-        USER = creds['USER']
-        PASSWORD = creds['PASSWORD']
-        DATABASE = creds['DATABASE']
-        PORT = creds['PORT']
-
-        self.engine = create_engine(f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}")
-        self.client = boto3.client('s3')
+        # DATABASE_TYPE = creds['DATABASE_TYPE']
+        # DBAPI = creds['DBAPI']
+        # HOST = creds['HOST']
+        # USER = creds['USER']
+        # PASSWORD = creds['PASSWORD']
+        # DATABASE = creds['DATABASE']
+        # PORT = creds['PORT']
+        self.key_id = input('Enter your AWS key id: ')
+        self.secret_key = input('Enter your AWS secret key: ')
+        self.bucket_name = input('Enter your bucket name: ')
+        self.region = input('Enter your region: ')
+        self.client = boto3.client(
+            's3',
+            aws_access_key_id=self.key_id,
+            aws_secret_access_key=self.secret_key,
+            region_name=self.region
+        )
+        # self.engine = create_engine(f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}")
+        # self.client = boto3.client('s3')
 
     def accept_cookies(self, xpath: str, iframe: Optional[str] = None):
         '''
@@ -152,8 +167,8 @@ class ScraperZoopla(Scraper):
             'Property ID': [],
             'Image Link': [],
         }
-        df = pd.read_sql('properties_2', self.engine)
-        self.friendly_id_scraped = list(df['Friendly_ID'])
+        # df = pd.read_sql('properties_2', self.engine)
+        # self.friendly_id_scraped = list(df['Friendly_ID'])
         self.location = location
 
     def go_to_location(self):
@@ -247,8 +262,8 @@ class ScraperZoopla(Scraper):
                     for i in range(len(image_list)):
                         time.sleep(2)
                         new_id = uuid.uuid4()
-                        urllib.request.urlretrieve(image_list[i], tmpdirname + f'/{new_id}.jpg')
-                        self.client.upload_file(tmpdirname + f'/{new_id}.jpg', 'march-bucket-test', f'{new_id}.jpg')
+                        # urllib.request.urlretrieve(image_list[i], tmpdirname + f'/{new_id}.jpg')
+                        # self.client.upload_file(tmpdirname + f'/{new_id}.jpg', 'march-bucket-test', f'{new_id}.jpg')
                         self.image_dict['ID'].append(new_id)
                         self.image_dict['Property ID'].append(self.prop_dict['ID'][-1])
                         self.image_dict['Image Link'].append(f'https://march-bucket-test.s3.amazonaws.com/{new_id}.jpg')
