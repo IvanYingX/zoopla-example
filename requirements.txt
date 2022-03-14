@@ -1,0 +1,10 @@
+bs4
+selenium
+requests
+boto3
+pyYaml
+sqlalchemy
+psycopg2-binary
+pandas
+tqdm
+webdriver-manager
